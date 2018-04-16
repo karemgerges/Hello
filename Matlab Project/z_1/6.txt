@@ -1,0 +1,13 @@
+  all Roots		Errors	
+   5.00000	   0.00000
+   2.39130	   2.60870
+   1.30811	   1.08320
+   1.02306	   0.28505
+   1.00015	   0.02291
+   1.00000	   0.00015
+   1.00000	   0.00000
+The Root is 1
+The initial point is 5
+The Number of  iterations is : 7
+The precision is : -6.4273e-09
+The Execution time is : 0.53105

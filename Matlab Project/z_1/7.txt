@@ -1,0 +1,7 @@
+---Method--	# of iter	root	Error
+--bisection--	2		1		1
+falseposition	11		1		4.7968e-06
+-fixed-point-	2		NaN		NaN
+newtonraphson.	5		1		1.2378e-10
+---secant----	6		1		1.2432e-06
+bierge--vieta	6		1		1.2378e-10

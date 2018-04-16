@@ -1,0 +1,14 @@
+  all Roots		Errors		all Value
+   0.26316	   0.00000	  -4.07202
+   1.41791	   1.15475	   3.27467
+   0.90320	   0.51471	  -0.65887
+   0.98941	   0.08621	  -0.07389
+   1.00030	   0.01089	   0.00211
+   1.00000	   0.00030	  -0.00001
+   1.00000	   0.00000	  -0.00000
+The Root is :1
+The FirstPoint is : 8
+The second point is : 0
+The Number of iterations : 7
+The precision is : 9.1639e-07
+The Execution time is : 0.0018992

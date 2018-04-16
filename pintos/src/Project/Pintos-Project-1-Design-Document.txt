@@ -1,0 +1,333 @@
+			+--------------------+
+			|        CS 333      |
+			| PROJECT 1: THREADS |
+			|   DESIGN DOCUMENT  |
+			+--------------------+
+
+---- GROUP ----
+
+>> Fill in the names and email addresses of your group members.
+
+Fady Nabil   <fadynabil96@gmail.com>
+Karim Gerges <kimogerges55@gmail.com>
+Mohamed Raafat <Mishors@yahoo.co.uk>
+
+---- PRELIMINARIES ----
+
+>> If you have any preliminary comments on your submission, notes for the
+>> TAs, or extra credit, please give them here.
+
+>> Please cite any offline or online sources you consulted while
+>> preparing your submission, other than the Pintos documentation, course
+>> text, lecture notes, and course staff.
+
+			     ALARM CLOCK
+			     ===========
+
+---- DATA STRUCTURES ----
+
+>> A1: Copy here the declaration of each new or changed `struct' or
+>> `struct' member, global or static variable, `typedef', or
+>> enumeration.  Identify the purpose of each in 25 words or less.
+
+*** thread.h ***
+   int64_t wake_ticks;
+   /* The time that the thread should awake after */
+*** timer.c ***
+   static struct list sleep_list;
+   /* List to carry the sleeping threads for the duration of */
+   /* their sleep */
+
+   static struct list sleep_priority_list;
+   /* Temporary list to carry the threads that should be awaken */
+   /* threads are re-ordered according to their priority */
+
+---- ALGORITHMS ----
+
+>> A2: Briefly describe what happens in a call to timer_sleep(),
+>> including the effects of the timer interrupt handler.
+
+For the raw pintOS project, timer_sleep() was implemented using
+a busy waiting technique, where it used to be chained in a while loop
+and yield any thread that attempts to run until the time of sleeping
+ends.
+Currently, after implementing the updated alarm clock, the irritative
+busy waiting is replaced by inserting the threads in a list called:
+sleep_list, where threads are inserted in order according to their
+wake_ticks, then lastly the thread is in blocked state.
+
+In timer_interrupt function, we loop on the sleep list to check whether
+there are any threads that should be awaked, if so they are added to a
+temporary list which contains all the threads that should run on the CPU,
+threads are ordered according to their priority in this temporary list.
+Then a loop unblocks all thread in the temporary list.
+
+>> A3: What steps are taken to minimize the amount of time spent in
+>> the timer interrupt handler?
+
+---- SYNCHRONIZATION ----
+
+>> A4: How are race conditions avoided when multiple threads call
+>> timer_sleep() simultaneously?
+
+Interrupts are disabled in function timer_sleep during setting the value of
+wake_time and adding the thread to the list to ensure that the process is
+atomic and that no disturbance will irritate its execution.
+
+>> A5: How are race conditions avoided when a timer interrupt occurs
+>> during a call to timer_sleep()?
+
+Also, interrupts are disabled in timer_interrupt function before the first
+loop that adds in the temp list, and are re-enabled after the suitable threads
+are unblocked.
+
+---- RATIONALE ----
+
+>> A6: Why did you choose this design?  In what ways is it superior to
+>> another design you considered?
+
+The design of the updated alarm clock was chosen in that way mainly
+to ensure avoiding busy waiting. The general design is as it is, as it was
+the most suitable and efficient way to handle the alarm clock so it is 
+guaranteed to fit the criteria put in the alarm clock tests.
+
+
+			 PRIORITY SCHEDULING
+			 ===================
+
+---- DATA STRUCTURES ----
+
+>> B1: Copy here the declaration of each new or changed `struct' or
+>> `struct' member, global or static variable, `typedef', or
+>> enumeration.  Identify the purpose of each in 25 words or less.
+*** thread.h ***
+   int old_priority;
+   /* Priority to be handled during donation */
+   struct lock *lock;
+   /* Lock struct so the thread points to its carried lock */
+   struct lock *wait_lock;
+   /* Lock struct that carries the lock that the container thread is waiting for */
+
+*** synch.h ***
+   int priority;
+   /* carries the priority of the highest thread priority that is waiting */
+   /* this lock */
+   struct list_elem lock_elem;
+
+>> B2: Explain the data structure used to track priority donation.
+>> Use ASCII art to diagram a nested donation.  (Alternately, submit a
+>> .png file.)
+
+1) Lock struct so the thread points to its carried lock, this struct is used
+to handle the multiple donation.
+2) Lock struct that carries the lock that the container thread is waiting for it,
+this is used to handle the nested donation.
+
+---- ALGORITHMS ----
+
+>> B3: How do you ensure that the highest priority thread waiting for
+>> a lock, semaphore, or condition variable wakes up first?
+
+The ready_queue list is the list of all threads that are ready to run 
+and to grab the CPU, the threads in this list are sorted according to
+their priorities where the last element in the list is the thread of
+highest priority. The thread is popped back in O(1) and scheduled by 
+the scheduler so it grab the CPU.
+
+>> B4: Describe the sequence of events when a call to lock_acquire()
+>> causes a priority donation.  How is nested donation handled?
+
+As a thread of lower priority acquires the lock and a thread of higher
+priority preempts that thread (lock_holder), the thread of higher
+priority donates its priority to the lock_holder and the scheduler is
+run so the lock_holder runs again on the CPU and it finishes its jobs
+and the lock is released. At this point the old priority (low) is set
+again to the past lock_holder and that thread returns back to the 
+ready queue then the higher priority thread runs on the CPU and the 
+normal process continues.
+For the nested priority donation:
+we will repeat the next sequence until a certain condition is satisfied:
+Checking if the lock_holder is waiting for another lock, if the lock_holder
+of the other lock has priority lower than the current thread, therefore,
+the current thread donates its priority to the lock_holder of the other lock.
+
+>> B5: Describe the sequence of events when lock_release() is called
+>> on a lock that a higher-priority thread is waiting for.
+
+Before releasing the lock we check if the priority of the lock_holder is
+donated we will return it to the original priority.
+If there is multiple donation we will return to the priority of the last 
+donation.
+
+---- SYNCHRONIZATION ----
+
+>> B6: Describe a potential race in thread_set_priority() and explain
+>> how your implementation avoids it.  Can you use a lock to avoid
+>> this race?
+
+If 2 donors raced on donating their priority to a lock_holder of lower priority.
+We handled this situation by disabling and enabling interrupts at the beginning
+and the end of the thread_set_priority() to ensure the atomicality of execution.
+
+We did not intend to think for using locks to avoid that race instead of disabling
+and enabling interrupts as we aimed to do the big things the easy and simplest 
+way.
+
+
+---- RATIONALE ----
+
+>> B7: Why did you choose this design?  In what ways is it superior to
+>> another design you considered?
+
+The design of the updated alarm clock was chosen in that way mainly
+to ensure avoiding busy waiting. The general design is as it is, as it was
+the most suitable and efficient way to handle the alarm clock so it is 
+guaranteed to fit the criteria put in the alarm clock tests.
+
+
+			  ADVANCED SCHEDULER
+			  ==================
+
+---- DATA STRUCTURES ----
+
+>> C1: Copy here the declaration of each new or changed `struct' or
+>> `struct' member, global or static variable, `typedef', or
+>> enumeration.  Identify the purpose of each in 25 words or less
+
+*** thread.h ***
+   int nice;
+   /* Nice value changed set for every thread to indicate time of leaving */
+   /* CPU to other threads */
+   int recent_cpu;
+   /* More recent CPU time should be weighted more heavily than less recent_cpu time */
+*** thread.c ***
+   int load_avg;
+   /* load_avg is a moving average of the number of threads ready to run */
+   /* load_avg indicates that a single thread, on average, is competing for the CPU */
+   int enter_once;
+   /* This int acts as a boolean to ensure that we enter the if condition */
+   /* it is present in the function thread_create as we need to ensure that
+   /* nice = recent_cpu = 0 at the first thread created only */
+
+
+---- ALGORITHMS ----
+
+>> C2: Suppose threads A, B, and C have nice values 0, 1, and 2.  Each
+>> has a recent_cpu value of 0.  Fill in the table below showing the
+>> scheduling decision and the priority and recent_cpu values for each
+>> thread after each given number of timer ticks:
+
+timer  recent_cpu    priority   thread
+ticks   A   B   C   A   B   C   to run
+-----  --  --  --  --  --  --   ------
+ 0     0   1   2   63  61  59     A 
+ 4     4   1   2   62  61  59     A 
+ 8     8   1   2   61  61  59     B 
+ 12    8   5   2   61  60  59     A
+ 16    12  5   2   60  60  59     B 
+ 20    12  9   2   60  59  59     A   
+ 24    16  9   2   59  58  59     C  
+ 28    20  9   6   59  58  58     A 
+ 32    20  13  6   59  58  58     A  
+ 36    24  13  6   58  58  58     C  
+
+>> C3: Did any ambiguities in the scheduler specification make values
+>> in the table uncertain?  If so, what rule did you use to resolve
+>> them?  Does this match the behavior of your scheduler?
+
+The calculated values of priority of each of A, B and C are at many 
+points of the calculations equal to each other, implementing this in a
+real OS will result in many scenarios to handle them.
+
+Round Robin is used to choose between many the threads having similar
+highest priorities.
+
+>> C4: How is the way you divided the cost of scheduling between code
+>> inside and outside interrupt context likely to affect performance?
+
+Generally, we disable interrupts at the critical code areas. For example
+when we need to update priorities of the threads in "all_list" where we
+intend to ensure the atomicality of this operation to ensure that the right 
+thread is to run and grab the CPU at the right time.
+
+In the area outside those of interrupt disabled, there exists the parts of
+code which are not affected by race conditions. We intended to minimize the
+parts where we disable interrupts to ensure code optimization.
+
+---- RATIONALE ----
+
+>> C5: Briefly critique your design, pointing out advantages and
+>> disadvantages in your design choices.  If you were to have extra
+>> time to work on this part of the project, how might you choose to
+>> refine or improve your design?
+
+Advantages:
+This design is the best practical design to obtain the required functions,
+we implemented the priority queues logically rather than to be implemented
+in 64 lists where we get the thread of max priority from the "ready_list"
+and let it run on the CPU. Generally, the priorities of all threads in
+"all_list" (ready and blocked) are changed according to the supplied equation
+in the project main statement.
+Also, we used our knowledge in numerical methods for implementing the equations
+used to calculate: 
+1) recent_cpu 
+2) priority 
+3) load_avg
+This knowledge was very useful to pass many tests that are used to test such tiny
+details in the calculations.
+
+Disadvantages:
+We implemented the fixed_point functions using integer (int) as it was a logical
+not a real implemented typedef for the type real or float which would have helped
+generally in the code readability.
+
+If we have had more time we would for sure have modified our fixed-point system
+to improve structures and code-readability.
+
+>> C6: The assignment explains arithmetic for fixed-point math in
+>> detail, but it leaves it open to you to implement it.  Why did you
+>> decide to implement it the way you did?  If you created an
+>> abstraction layer for fixed-point math, that is, an abstract data
+>> type and/or a set of functions or macros to manipulate fixed-point
+>> numbers, why did you do so?  If not, why not?
+
+We implemented the fixed-point the way we did according to what is mentioned
+in the problem statement of the project that used the fixed-point representation
+instead of floating point that does not work on pintOS as pintOS is created to
+work on intel's 8086 which does not support floating point operations.
+As an abstraction layer: macros where used to implement the real-int operations,
+macros where chosen since macros are compiled in C preprocessing stages same as
+the #include and #define, this should optimize the execution of our code to get
+the best performance.
+
+			   SURVEY QUESTIONS
+			   ================
+
+Answering these questions is optional, but it will help us improve the
+course in future quarters.  Feel free to tell us anything you
+want--these questions are just to spur your thoughts.  You may also
+choose to respond anonymously in the course evaluations at the end of
+the quarter.
+
+>> In your opinion, was this assignment, or any one of the three problems
+>> in it, too easy or too hard?  Did it take too long or too little time?
+
+The hardest part was the donation part, it took too long to be implemented
+and to pass the tests, though we have had many algorithms that should be
+acceptable.
+Many tests failed to pass at first because of very tiny details that should
+not affect a real operating system and many small details took long hours to
+be detected and fixed which led us at the end to forget the main purpose of
+of this project!
+
+>> Did you find that working on a particular part of the assignment gave
+>> you greater insight into some aspect of OS design?
+
+Some parts like priority-based scheduling and alarm clock were useful, some
+other parts were not as we hoped to be.
+
+>> Is there some particular fact or hint we should give students in
+>> future quarters to help them solve the problems?  Conversely, did you
+>> find any of our guidance to be misleading?
+
+No.

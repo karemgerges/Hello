@@ -1,0 +1,5 @@
+fixedpoint
+-x + exp(-x)
+0
+50
+0.00001
