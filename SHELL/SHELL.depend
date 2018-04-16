@@ -1,0 +1,61 @@
+# depslib dependency file v1.0
+1507740381 source:/home/karem/workSpace/SHELL/command_parser.c
+	<stdio.h>
+	<string.h>
+	<unistd.h>
+	<sys/types.h>
+	<stdlib.h>
+	"command_parser.h"
+
+1506434342 /home/karem/workSpace/SHELL/command_parser.h
+
+1507624463 source:/home/karem/workSpace/SHELL/commands.c
+	<stdio.h>
+	<string.h>
+	<unistd.h>
+	<sys/types.h>
+	<stdlib.h>
+	"commands.h"
+
+1507577728 /home/karem/workSpace/SHELL/commands.h
+
+1507455304 source:/home/karem/workSpace/SHELL/environment.c
+	"environment.h"
+	<stdio.h>
+	<string.h>
+	<unistd.h>
+	<sys/types.h>
+	<stdlib.h>
+
+1506434342 /home/karem/workSpace/SHELL/environment.h
+
+1507051680 source:/home/karem/workSpace/SHELL/file_processing.c
+	"file_processing.h"
+	<stdio.h>
+
+1507051701 /home/karem/workSpace/SHELL/file_processing.h
+	<stdio.h>
+
+1507756220 source:/home/karem/workSpace/SHELL/variables.c
+	"variables.h"
+	<stdio.h>
+	<string.h>
+	<unistd.h>
+	<sys/types.h>
+	<stdlib.h>
+
+1507411311 /home/karem/workSpace/SHELL/variables.h
+
+1507756198 source:/home/karem/workSpace/SHELL/main.c
+	<stdio.h>
+	<string.h>
+	<unistd.h>
+	<sys/types.h>
+	<stdlib.h>
+	"variables.h"
+	<signal.h>
+	"environment.h"
+	"command_parser.h"
+	"file_processing.h"
+	"commands.h"
+
